@@ -81,14 +81,14 @@
   <script>
 const APP_ID = '58b4940295a0e57b259d5057';
 const API_KEY = 'a3cf5370-0350-11e7-9116-c72137923d73';
-const OBJECT_ID = 'object_9'; // Replace with the object key for "Deceased"
+const SCENE_ID = 'scene_470';
+const VIEW_ID = 'view_859';
 const CONNECTED_FIELD = 'field_510'; // Connection to Funeral object
-const FUNERAL_STATUS_FIELD = 'field_301'; // Funeral status field on the connected object
 const FUNERAL_IMAGE_FIELD = 'field_2026'; // Image stored in the Funeral object
 
 async function testConnection() {
   try {
-    const response = await fetch(`https://api.knack.com/v1/objects/${OBJECT_ID}/records`, {
+    const response = await fetch(`https://api.knack.com/v1/pages/${SCENE_ID}/views/${VIEW_ID}/records`, {
       headers: {
         'X-Knack-Application-Id': APP_ID,
         'X-Knack-REST-API-Key': API_KEY,
@@ -111,23 +111,12 @@ testConnection();
 
 async function fetchActiveObituaries() {
   try {
-    const response = await fetch(`https://api.knack.com/v1/objects/${OBJECT_ID}/records/filter`, {
-      method: 'POST',
+    const response = await fetch(`https://api.knack.com/v1/pages/${SCENE_ID}/views/${VIEW_ID}/records`, {
       headers: {
         'X-Knack-Application-Id': APP_ID,
         'X-Knack-REST-API-Key': API_KEY,
         'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        filters: [
-          {
-            field: 'field_701',
-            operator: 'is',
-            value: 'Active'
-          }
-        ],
-        rows_per_page: 20
-      })
+      }
     });
 
     const data = await response.json();
@@ -157,6 +146,7 @@ async function fetchActiveObituaries() {
 }
 
 fetchActiveObituaries();
+
 
   </script>
 </body>
