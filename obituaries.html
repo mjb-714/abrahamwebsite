@@ -1,84 +1,3 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Obituaries – Abraham's Funeral Home</title>
-  <style>
-    body {
-      font-family: "Lato", sans-serif;
-      background-color: #fdf9f6;
-      color: #333;
-      margin: 0;
-      line-height: 1.6; 
-    }
-    nav {
-      background-color: #79242f;
-      padding: 1rem;
-      text-align: center;
-    }
-    nav a {
-      color: #fff;
-      text-decoration: none;
-      margin: 0 1rem;
-      font-weight: bold;
-    }
-    header {
-      text-align: center;
-      padding: 4rem 1rem 2rem;
-    }
-    h1 {
-      font-size: 2rem;
-      margin-bottom: 1rem;
-    }
-    .obituary-grid {
-      max-width: 1000px;
-      margin: 0 auto;
-      padding: 2rem;
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-      gap: 2rem;
-    }
-    .obituary-card {
-      background: #fff;
-      border-radius: 10px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-      padding: 1rem;
-      text-align: center;
-    }
-    .obituary-card img {
-      width: 100px;
-      height: 100px;
-      object-fit: cover;
-      border-radius: 50%;
-      margin-bottom: 1rem;
-    }
-    .obituary-card h3 {
-      margin: 0.5rem 0;
-      color: #79242f;
-    }
-    .obituary-card p {
-      font-size: 0.95rem;
-    }
-  </style>
-</head>
-<body>
-  <nav>
-    <a href="index.html">Home</a>
-    <a href="obituaries.html">Obituaries</a>
-    <a href="caskets.html">Caskets</a>
-  </nav>
-
-  <header>
-    <h1>Obituaries</h1>
-    <p>Browse recent tributes and shared memories of loved ones.</p>
-  </header>
-
-  <section class="obituary-grid" id="obituaries">
-    <p>Loading active obituaries...</p>
-  </section>
-
-  <script>
 const APP_ID = '58b4940295a0e57b259d5057';
 const API_KEY = 'a3cf5370-0350-11e7-9116-c72137923d73';
 const SCENE_ID = 'scene_470';
@@ -129,6 +48,7 @@ async function fetchActiveObituaries() {
       const name = record.field_840; // Deceased name
       const dobdod = record.field_2040; // date of birth - date of death
       const imageHTML = record.field_2026 || ''; // raw HTML img tag from Knack
+      const details = record.field_2042 || ''; // Additional funeral details
 
       // Extract image URL from img tag
       const match = imageHTML.match(/src=\"(.*?)\"/);
@@ -140,7 +60,16 @@ async function fetchActiveObituaries() {
         <img src="${image}" alt="${name}" />
         <h3>${name}</h3>
         <p>${dobdod}</p>
+        <div class="obituary-details" style="display:none; margin-top:1rem; font-size:0.9rem;">${details}</div>
+        <button class="toggle-details">More Details</button>
       `;
+
+      card.querySelector('.toggle-details').addEventListener('click', () => {
+        const detailEl = card.querySelector('.obituary-details');
+        const isVisible = detailEl.style.display === 'block';
+        detailEl.style.display = isVisible ? 'none' : 'block';
+      });
+
       container.appendChild(card);
     });
   } catch (err) {
@@ -150,10 +79,3 @@ async function fetchActiveObituaries() {
 }
 
 fetchActiveObituaries();
-
-fetchActiveObituaries();
-
-
-  </script>
-</body>
-</html>
