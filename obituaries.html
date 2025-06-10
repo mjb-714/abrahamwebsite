@@ -121,7 +121,7 @@ async function fetchActiveObituaries() {
       body: JSON.stringify({
         filters: [
           {
-            field: CONNECTED_FIELD + "." + FUNERAL_STATUS_FIELD,
+            field: 'field_701',
             operator: 'is',
             value: 'Active'
           }
