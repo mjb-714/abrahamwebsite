@@ -119,59 +119,109 @@
   </footer>
 
   <script>
-    const APP_ID = '58b4940295a0e57b259d5057';
-    const API_KEY = 'a3cf5370-0350-11e7-9116-c72137923d73';
-    const SCENE_ID = 'scene_470';
-    const VIEW_ID = 'view_859';
 
-    async function fetchActiveObituaries() {
-      try {
-        const response = await fetch(`https://api.knack.com/v1/pages/${SCENE_ID}/views/${VIEW_ID}/records`, {
-          headers: {
-            'X-Knack-Application-Id': APP_ID,
-            'X-Knack-REST-API-Key': API_KEY,
-            'Content-Type': 'application/json'
-          }
-        });
 
-        const data = await response.json();
-        const container = document.getElementById('obituaries');
-        container.innerHTML = '';
 
-        data.records.forEach(record => {
-          const name = record.field_840;
-          const dobdod = record.field_2040;
-          const imageHTML = record.field_2026 || '';
-          const details = record.field_2042 || '';
+const APP_ID = '58b4940295a0e57b259d5057';
+const API_KEY = 'a3cf5370-0350-11e7-9116-c72137923d73';
+const SCENE_ID = 'scene_470';
+const VIEW_ID = 'view_859';
 
-          const match = imageHTML.match(/src="(.*?)"/);
-          const image = match ? match[1] : 'placeholder.jpg';
-
-          const card = document.createElement('div');
-          card.className = 'obituary-card';
-          card.innerHTML = `
-            <img src="${image}" alt="${name}" />
-            <h3>${name}</h3>
-            <p>${dobdod}</p>
-            <div class="obituary-details">${details}</div>
-            <button class="toggle-details">More Details</button>
-          `;
-
-          card.querySelector('.toggle-details').addEventListener('click', () => {
-            const detailEl = card.querySelector('.obituary-details');
-            const isVisible = detailEl.style.display === 'block';
-            detailEl.style.display = isVisible ? 'none' : 'block';
-          });
-
-          container.appendChild(card);
-        });
-      } catch (err) {
-        document.getElementById('obituaries').innerHTML = '<p>Failed to load active obituaries.</p>';
-        console.error('Obituary fetch error:', err);
+async function fetchConnectedFuneralData(funeralId) {
+  try {
+    const response = await fetch(`https://api.knack.com/v1/objects/object_8/records/${funeralId}`, {
+      headers: {
+        'X-Knack-Application-Id': APP_ID,
+        'X-Knack-REST-API-Key': API_KEY,
+        'Content-Type': 'application/json'
       }
-    }
+    });
 
-    fetchActiveObituaries();
+    if (!response.ok) throw new Error('Funeral fetch failed');
+    const data = await response.json();
+    return {
+      serviceDate: data.field_554_raw || 'N/A',
+      serviceVenue: data.field_1198 || 'N/A'
+    };
+  } catch (err) {
+    console.warn('Could not fetch connected funeral data:', err);
+    return {
+      serviceDate: 'N/A',
+      serviceVenue: 'N/A'
+    };
+  }
+}
+
+async function fetchActiveObituaries() {
+  try {
+    const response = await fetch(`https://api.knack.com/v1/pages/${SCENE_ID}/views/${VIEW_ID}/records`, {
+      headers: {
+        'X-Knack-Application-Id': APP_ID,
+        'X-Knack-REST-API-Key': API_KEY,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    const data = await response.json();
+    const container = document.getElementById('obituaries');
+    container.innerHTML = '';
+
+    for (const record of data.records) {
+      console.log('Checking record:', record);
+      const name = record.field_510_raw?.[0]?.identifier || 'Unnamed';
+      const dobdod = record.field_2040;
+      const imageHTML = record.field_2026 || '';
+      const match = imageHTML.match(/src="(.*?)"/);
+      const image = match ? match[1] : 'placeholder.jpg';
+
+      let serviceDate = 'N/A';
+      let serviceVenue = 'N/A';
+
+      const funeralId = record.field_510_raw?.[0]?.id;
+      if (funeralId) {
+        const funeralDetails = await fetchConnectedFuneralData(funeralId);
+        serviceDate = funeralDetails.serviceDate;
+        serviceVenue = funeralDetails.serviceVenue;
+        console.log(`Found funeral details for ${name}`, funeralDetails);
+      } else {
+        console.warn(`No funeral ID found for ${name}`);
+      }
+
+      const card = document.createElement('div');
+      card.className = 'obituary-card';
+      card.innerHTML = `
+        <img src="${image}" alt="${name}" />
+        <h3>${name}</h3>
+        <p>${dobdod}</p>
+        <div class="obituary-details" style="display:none; margin-top:1rem; font-size:0.9rem;"></div>
+        <button class="toggle-details">More Details</button>
+      `;
+
+      card.querySelector('.toggle-details').addEventListener('click', () => {
+        const detailEl = card.querySelector('.obituary-details');
+        const isVisible = detailEl.style.display === 'block';
+
+        if (!isVisible && detailEl.innerHTML.trim() === '') {
+          detailEl.innerHTML = `
+            <p><strong>Service Date:</strong> ${serviceDate}</p>
+            <p><strong>Venue:</strong> ${serviceVenue}</p>
+          `;
+        }
+
+        detailEl.style.display = isVisible ? 'none' : 'block';
+      });
+
+      container.appendChild(card);
+    }
+  } catch (err) {
+    document.getElementById('obituaries').innerHTML = '<p>Failed to load active obituaries.</p>';
+    console.error('Obituary fetch error:', err);
+  }
+}
+
+fetchActiveObituaries();
+
+
   </script>
 </body>
 </html>
