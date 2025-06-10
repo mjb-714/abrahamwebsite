@@ -126,9 +126,13 @@ async function fetchActiveObituaries() {
     container.innerHTML = '';
 
     data.records.forEach(record => {
-      const name = record.field_144; // Deceased name
+      const name = record.field_840; // Deceased name
       const dobdod = record.field_2040; // date of birth - date of death
-      const image = record[CONNECTED_FIELD + '.' + FUNERAL_IMAGE_FIELD + '_raw']?.url || 'placeholder.jpg';
+      const imageHTML = record.field_2026 || ''; // raw HTML img tag from Knack
+
+      // Extract image URL from img tag
+      const match = imageHTML.match(/src=\"(.*?)\"/);
+      const image = match ? match[1] : 'placeholder.jpg';
 
       const card = document.createElement('div');
       card.className = 'obituary-card';
@@ -144,6 +148,8 @@ async function fetchActiveObituaries() {
     console.error('Obituary fetch error:', err);
   }
 }
+
+fetchActiveObituaries();
 
 fetchActiveObituaries();
 
